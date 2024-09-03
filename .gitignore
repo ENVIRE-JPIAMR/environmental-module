@@ -1,0 +1,13 @@
+.Rhistory
+*~
+sandbox
+*.RData
+*.tex
+*.pdf
+*.html
+*.log
+*.aux
+*.out
+*.pdf
+*.tex
+~$*
