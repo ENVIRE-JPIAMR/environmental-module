@@ -10,6 +10,8 @@ if (install_libraries)
   install.packages(c(
     "readxl",
     "ggplot2",
+    "EnvStats",
+    "mc2d"
     )
   )
 }
@@ -20,7 +22,8 @@ if (install_libraries)
 
 library(readxl)       # for reading excel files
 library(ggplot2)      # for plotting
-
+library(EnvStats)     # for truncated lognormal dist.
+library(mc2d)         # for triangular dist.
 
 ## Cleanup
 rm("install_libraries")

@@ -1,11 +1,7 @@
 ## Submodule for tap-water drinking
-source(here::here("environmental-module/utilities/decay_model.R"))
-
-#computing decay rate
-data$k_drinking <- get_decay_rate(data)
 
 #concentration after decay
-data$C_decay.drinking <- data$C_init * exp(-data$k_drinking * data$d_dwtp)
+data$C_decay.drinking <- data$C_init * exp(-data$k * data$d_dwtp)
 
 #concentration after DWTP processing (all treatments)
 data$C_dwtp <-
