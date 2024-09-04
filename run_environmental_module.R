@@ -2,6 +2,7 @@ source(here::here("environmental-module/load_libraries.R"))
 source(here::here("foodborne-module/utilities/estimate_variables.R"))
 source(here::here("farm-module/run_farm_module_parallel.R"))
 source(here::here("environmental-module/utilities/decay_model.R"))
+source(here::here("environmental-module/utilities/visualization.R"))
 
 ## Initialization
 
@@ -35,6 +36,8 @@ source(here::here("environmental-module/submodule_drinking.R"))
 source(here::here("environmental-module/submodule_swimming.R"))
 source(here::here("environmental-module/submodule_lettuce.R"))
 
+# Plot ECDFs
+plot_ecdfs(data)
 
 
 
