@@ -6,7 +6,7 @@ source(here::here("environmental-module/utilities/visualization.R"))
 
 ## Initialization
 
-Runs <- 100 # number of simulation to be performed
+Runs <- 1000 # number of simulation to be performed
 
 # Create dataframe with specified number of rows and column names
 data <- data.frame(matrix(1:Runs, nrow = Runs, ncol = 1))
