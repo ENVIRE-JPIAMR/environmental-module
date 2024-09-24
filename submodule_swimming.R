@@ -4,7 +4,7 @@
 data$C_decay.swimming <- data$C_init
 
 #concentration in bathing sites
-data$C_bath <- (data$C_decay.drinking * data$F)  / data$V
+data$C_bath <- (data$C_decay.swimming * data$F)  / data$V
   
 #human exposure
 if(data$swimmer_type[1] == 1){
