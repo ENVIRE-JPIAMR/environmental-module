@@ -6,13 +6,9 @@ std_dev <- 0.02 * 10^4  # Standard deviation
 manure_application_rate <- 2  # kg/m2 - example
 field_area <- 4000  # m2 - example
 
-# Runoff coefficient distribution for the "Marins" catchment (https://www.sciencedirect.com/science/article/pii/S2095633921000885)
-mean_runoff_coefficient <- 0.12
-sd_runoff_coefficient <- 0.1
-
-# Generate a random sample of runoff coefficients based on a normal distribution
+# Random sample of runoff coefficients - to check in the literature 
 n_simulations <- 1000
-runoff_coefficients <- rnorm(n_simulations, mean_runoff_coefficient, sd_runoff_coefficient)
+runoff_coefficients <- runif(n_simulations, min = 0.05, max = 0.2) 
 
 # Total manure applied in kg and convert to grams
 total_manure_applied_grams <- manure_application_rate * field_area * 1000
