@@ -16,9 +16,9 @@ E_coli_reaching_waterbody <- E_coli_load * data$transport[1]
 # Calculate the volume of the waterbody (m³)
 volume_waterbody <- data$w_area[1] * data$depth[1]
 
-# Convert volume from m³ to liters (1 m³ = 1000 liters)
-volume_waterbody_liters <- volume_waterbody * 1000
+# Convert volume from m³ to liters (1 m³ = 1000000 mililiters)
+volume_waterbody_mililiters <- volume_waterbody * 1000000
 
-# Calculate the initial concentration of E.coli in the waterbody (CFU/L)
-data$C_init <- E_coli_reaching_waterbody / volume_waterbody_liters
+# Calculate the initial concentration of E.coli in the waterbody (CFU/mL)
+data$C_init <- E_coli_reaching_waterbody / volume_waterbody_mililiters
 
