@@ -45,10 +45,10 @@ manure_applied_per_m2_grams <- manure_application_rate * 1000  # kg/m² to g/m²
 
 # Simulate random E. coli concentrations per square meter based on mean and std deviation
 n_simulations <- 1000  # Number of simulations to run
-e_coli_concentrations_per_m2 <- rnorm(n_simulations, e_coli_concentration, std_dev)
+e_coli_concentrations_per_gram <- rnorm(n_simulations, e_coli_concentration, std_dev) # CFU/g manure
 
 # Adjust initial E. coli load based on dilution with soil, per square meter
-initial_e_coli_per_m2 <- e_coli_concentrations_per_m2 * manure_applied_per_m2_grams / (soil_mass_per_m2 + manure_applied_per_m2_grams)
+initial_e_coli_per_m2 <- e_coli_concentrations_per_gram * manure_applied_per_m2_grams / (soil_mass_per_m2 + manure_applied_per_m2_grams) # cfu/m2 field
 
 # Function to calculate E. coli concentration over time per m² using the mean decay rate
 calculate_decay <- function(initial_concentration, decay_rate, days) {
