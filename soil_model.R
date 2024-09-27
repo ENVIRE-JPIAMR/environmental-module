@@ -22,6 +22,9 @@ decay_mean <- mean(results)
 e_coli_concentration <- 1.6 * 10^4  # CFU/g, mean E. coli concentration in manure
 std_dev <- 0.02 * 10^4  # Standard deviation
 
+
+
+
 # Assumed
 manure_application_rate <- 2  # kg/m2 - 2 kg per square meter
 
@@ -39,16 +42,24 @@ soil_bulk_density_kg_per_m3 <- soil_bulk_density * 1000  # Convert to kg/m³
 # Calculate soil volume and mass per square meter
 soil_volume_per_m2 <- soil_depth_m * 1  # Volume of soil per m² (in cubic meters)
 soil_mass_per_m2 <- soil_volume_per_m2 * soil_bulk_density_kg_per_m3  # Mass of soil per m² (in kg)
+soil_mass_per_m2_grams <- soil_mass_per_m2 * 1000  # Convert soil mass to grams
+
+
 
 # Calculate total manure applied per square meter (g/m2)
 manure_applied_per_m2_grams <- manure_application_rate * 1000  # kg/m² to g/m²
 
 # Simulate random E. coli concentrations per square meter based on mean and std deviation
 n_simulations <- 1000  # Number of simulations to run
-e_coli_concentrations_per_gram <- rnorm(n_simulations, e_coli_concentration, std_dev) # CFU/g manure
+e_coli_concentrations_per_gram <- rnorm(n_simulations, e_coli_concentration, std_dev) # cfu/g manure
 
-# Adjust initial E. coli load based on dilution with soil, per square meter
-initial_e_coli_per_m2 <- e_coli_concentrations_per_gram * manure_applied_per_m2_grams / (soil_mass_per_m2 + manure_applied_per_m2_grams) # cfu/m2 field
+# CFU per m² 
+initial_e_coli_per_m2 <- e_coli_concentrations_per_gram * manure_applied_per_m2_grams
+
+# CFU per g/m²
+e_coli_cfu_g_m2 <- e_coli_concentrations_per_gram * manure_applied_per_m2_grams / (soil_mass_per_m2_grams + manure_applied_per_m2_grams)
+
+
 
 # Function to calculate E. coli concentration over time per m² using the mean decay rate
 calculate_decay <- function(initial_concentration, decay_rate, days) {
@@ -60,17 +71,24 @@ decay_data <- tibble(
   simulation = rep(1:n_simulations, each = length(days)),
   day = rep(days, times = n_simulations),
   e_coli_concentration_per_m2 = unlist(lapply(initial_e_coli_per_m2, function(init_conc) calculate_decay(init_conc, decay_mean, days))),
-  total_e_coli_on_field = e_coli_concentration_per_m2 * field_area  # Total E. coli on the field
+  total_e_coli_on_field = e_coli_concentration_per_m2 * field_area,  # Total E. coli on the field
+  # E. coli concentration per g·m² (adjusted with the soil dilution)
+  e_coli_cfu_per_g_m2 = unlist(lapply(e_coli_cfu_g_m2, function(init_conc) calculate_decay(init_conc, decay_mean, days)))
 )
 
 # Results decay model
 results_summary <- decay_data %>%
   group_by(day) %>%
   summarise(
+    # CFU/m²
     mean_e_coli_concentration_per_m2 = mean(e_coli_concentration_per_m2),
     std_e_coli_concentration_per_m2 = sd(e_coli_concentration_per_m2),
+    # Total CFU on field
     mean_total_e_coli_on_field = mean(total_e_coli_on_field),
-    std_total_e_coli_on_field = sd(total_e_coli_on_field)
+    std_total_e_coli_on_field = sd(total_e_coli_on_field),
+    # CFU/g·m²
+    mean_e_coli_cfu_per_g_m2 = mean(e_coli_cfu_per_g_m2),
+    std_e_coli_cfu_per_g_m2 = sd(e_coli_cfu_per_g_m2)
   )
 
 ggplot(results_summary, aes(x = day, y = mean_e_coli_concentration_per_m2)) +
