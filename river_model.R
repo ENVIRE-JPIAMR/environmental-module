@@ -62,13 +62,13 @@ results_with_rainfall <- all_days %>%
     runoff_volume = total_rainfall_m * field_area * mean(runoff_coefficients),  # Mean runoff volume in cubic meters
     e_coli_in_runoff = ifelse(rainfall_mm > 0, e_coli_washoff, 0),  # Only add E. coli to runoff on rainfall days
     
-   EC_Env_x = e_coli_in_runoff * exp(-k * t_x),  # E. coli concentration after decay in river
+   # EC_Env_x = e_coli_in_runoff * exp(-k * t_x),  # E. coli concentration after decay in river # line to be removed
     
     
-    bacteria_added_bathing_site = ifelse(rainfall_mm > 0, EC_Env_x / mean(bathing_site_volumes), 0),  # Bacteria added to the bathing site
+   #  bacteria_added_bathing_site = ifelse(rainfall_mm > 0, EC_Env_x / mean(bathing_site_volumes), 0),  # Bacteria added to the bathing site #line to be removed
     
     # Cumulative E. coli in the bathing site (accounting for decay)
-    total_ecoli_bathing_site = lag(total_ecoli_bathing_site, default = 0) + bacteria_added_bathing_site,  # Total E. coli in the bathing site
+    total_ecoli_bathing_site = lag(total_ecoli_bathing_site, default = 0) + e_coli_in_runoff,  # Total E. coli in the bathing site 
     
     # Apply Mancini decay to the total E. coli in the bathing site
     total_ecoli_bathing_site_after_decay = total_ecoli_bathing_site * exp(-k * t_x), 
