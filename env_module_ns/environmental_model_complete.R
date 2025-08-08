@@ -1508,10 +1508,11 @@ write_xlsx(mean_prop_infected,        "mean_prop_infected.xlsx")  # flock preval
 write_xlsx(soil_results_summary,      "soil_results_summary.xlsx") # results soil module
 write_xlsx(simulation_results,        "river_results_summary.xlsx") # results river module
 write_xlsx(lettuce_summary,    "lettuce_summary.xlsx") # exposure via lettuce consumption - results lettuce module
-write_xlsx(swimming_exposure_summary, "swimming_exposure_summary.xlsx") # exposure via recreational swimming - results lettuce module
+write_xlsx(swimming_exposure_summary, "swimming_exposure_summary.xlsx") # exposure via recreational swimming - results swimming module
 write_xlsx(lettuce_risk_summary,      "lettuce_risk_summary.xlsx") # lettuce consumption GI, UTI and DALY
 write_xlsx(swimming_risk_summary,      "swimming_risk_summary.xlsx") # recreational swimming  GI, UTI and DALY
 write_xlsx(prcc_df_fm,                "prcc_df_fm.xlsx") # sensitivity analysis farm module
 write_xlsx(prcc_res_swimming,                "prcc_res_swimming") # sensitivity analysis swimming module
 write_xlsx(prcc_res_lettuce,                "prcc_res_lettuce")  # sensitivity analysis lettuce module
+
 
