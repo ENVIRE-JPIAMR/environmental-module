@@ -299,7 +299,7 @@ farm_cfu <- results %>%
     upper_cfu_g   = quantile(cfu_g, probs = 0.975, na.rm = TRUE),
     .groups    = "drop"
   )
-write
+
 
 # For subsequent modules, extract the final day statistics
 mean_last_day <- farm_cfu %>% filter(day == 36) %>% pull(mean_cfu_g)
@@ -960,16 +960,6 @@ p12 <- lettuce_long %>%
   ) +
   my_theme
 
-# Write results
-write_xlsx(farm_cfu,                  "farm_cfu.xlsx")
-write_xlsx(mean_prop_infected,        "mean_prop_infected.xlsx")
-write_xlsx(soil_results_summary,      "soil_results_summary.xlsx")
-write_xlsx(simulation_results,        "river_results_summary.xlsx")
-write_xlsx(lettuce_summary,    "lettuce_summary.xlsx")
-write_xlsx(swimming_exposure_summary, "swimming_exposure_summary.xlsx")
-write_xlsx(lettuce_risk_summary,      "lettuce_risk_summary.xlsx")
-write_xlsx(swimming_risk_summary,      "swimming_risk_summary.xlsx")
-write_xlsx(lettuce_risk,                "lettuce_risk.xlsx")
 
 ########################################
 #  Sensitivity Analysis (Farm Module)  #
@@ -1254,11 +1244,8 @@ prcc_res_lettuce <- pcc(
   nboot = 100
 )
 
-print(prcc_res)
-plot(prcc_res)
-
 # turn into data.frame and label plot nicely
-prcc_res_lettuce <- as.data.frame(prcc_res$PRCC)
+prcc_res_lettuce <- as.data.frame(prcc_res_lettuce$PRCC)
 colnames(prcc_res_lettuce) <- c("prcc", "bias", "std.error", "min.ci", "max.ci")
 prcc_res_lettuce$parameter <- rownames(prcc_res_lettuce)
 rownames(prcc_res_lettuce) <- NULL
@@ -1514,4 +1501,17 @@ ggplot(prcc_df, aes(x = parameter, y = prcc)) +
   ) +
   theme_minimal(base_size = 12)
 
+
+# Write results
+write_xlsx(farm_cfu,                  "farm_cfu.xlsx")  # CFU/g Litter - results farm module
+write_xlsx(mean_prop_infected,        "mean_prop_infected.xlsx")  # flock prevalence - results farm module
+write_xlsx(soil_results_summary,      "soil_results_summary.xlsx") # results soil module
+write_xlsx(simulation_results,        "river_results_summary.xlsx") # results river module
+write_xlsx(lettuce_summary,    "lettuce_summary.xlsx") # exposure via lettuce consumption - results lettuce module
+write_xlsx(swimming_exposure_summary, "swimming_exposure_summary.xlsx") # exposure via recreational swimming - results lettuce module
+write_xlsx(lettuce_risk_summary,      "lettuce_risk_summary.xlsx") # lettuce consumption GI, UTI and DALY
+write_xlsx(swimming_risk_summary,      "swimming_risk_summary.xlsx") # recreational swimming  GI, UTI and DALY
+write_xlsx(prcc_df_fm,                "prcc_df_fm.xlsx") # sensitivity analysis farm module
+write_xlsx(prcc_res_swimming,                "prcc_res_swimming") # sensitivity analysis swimming module
+write_xlsx(prcc_res_lettuce,                "prcc_res_lettuce")  # sensitivity analysis lettuce module
 
