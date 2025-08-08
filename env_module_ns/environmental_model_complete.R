@@ -639,7 +639,7 @@ simulate_scenario <- function(planting_day, n_days, n_simulations, river_summary
 
 # Run lettuce model for all planting days
 all_scenarios_results <- map_df(planting_days, function(planting_day) {
-  simulate_scenario(planting_day, n_days, 100, river_summary_results)
+  simulate_scenario(planting_day, n_days, 1000, river_summary_results)
 })
 
 # Extract final exposures at harvest
@@ -1064,7 +1064,7 @@ prcc_res_fm <- pcc(
   X     = param_samples,
   y     = output_metric,
   rank  = TRUE,
-  nboot = 100
+  nboot = 100 )
 
 
 prcc_df_fm <- as.data.frame(prcc_res_fm$PRCC)
@@ -1440,7 +1440,7 @@ with_progress({
       river_sum  <- run_river_simulation(soil_sum)
       n_days_run <- nrow(river_sum)
       
-      # 4) Swimming module (100 replicates)
+      # 4) Swimming module 
       swim_df <- map_df(1:1000, function(sim) {
       Fr_sim <- Fr_i      # [L/day]
         V_sim  <- V_i       # [L]
@@ -1513,4 +1513,5 @@ ggplot(prcc_df, aes(x = parameter, y = prcc)) +
     title = ""
   ) +
   theme_minimal(base_size = 12)
+
 
