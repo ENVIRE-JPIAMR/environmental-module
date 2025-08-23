@@ -446,7 +446,7 @@ run_river_simulation <- function(soil_results_summary) {
     et <- runif(1, 0.26, 0.31)                # light extinction coefficient
     H <- runif(1, 0.5, 6)                     # water depth (m)
     # Bathing site volume in liters
-    bathing_site_volume <- runif(1, 67500, 82500) * 1000
+    bathing_site_volume <- runif(1, 67500, 82500) * 1000  # conversion of m3 (cubic-meters) to L (liters)
     
     # Decay rate calculated using Mancini's equation
     k <- 0.8 + 0.006 * seawater * 1.07^(T - 20) +
@@ -481,14 +481,14 @@ run_river_simulation <- function(soil_results_summary) {
     daily_data
   })
   
-  # Summarize simulation results across Monte Carlo iterations
+  # Summarize simulation results across Monte Carlo iterations - results devided by 1000 to convert in mL
   river_summary <- sim_results %>%
     group_by(day) %>%
     summarize(
-      mean_concentration = mean(e_coli_concentration_bathing_site, na.rm = TRUE) / 1000,
-      sd_concentration   = sd(e_coli_concentration_bathing_site, na.rm = TRUE) / 1000,
-      lower_CFU_mL  = quantile(e_coli_concentration_bathing_site / 1000, 0.025, na.rm = TRUE),
-      upper_CFU_mL  = quantile(e_coli_concentration_bathing_site / 1000, 0.975, na.rm = TRUE),
+      mean_concentration = mean(e_coli_concentration_bathing_site, na.rm = TRUE) / 1000, # CFU/mL
+      sd_concentration   = sd(e_coli_concentration_bathing_site, na.rm = TRUE) / 1000, # CFU/mL
+      lower_CFU_mL  = quantile(e_coli_concentration_bathing_site / 1000, 0.025, na.rm = TRUE), # CFU/mL
+      upper_CFU_mL  = quantile(e_coli_concentration_bathing_site / 1000, 0.975, na.rm = TRUE), # CFU/mL
       .groups = "drop"
     )
   return(river_summary)
@@ -512,8 +512,8 @@ simulation_results <- run_river_simulation(soil_results_summary)
 # Define scenario names and associate with river simulation results.
 swimming_simulation_results <- map_df(1:1000, function(sim) {
   # 1) draw the one‐time downstream flow & volume for this simulation
-  Fr_Day_sim <- rtriangle(1, a = 67500, b = 82500, c = (67500 + 82500)/2)  # L/day
-  V_sim      <- runif(1, 67500, 82500)      # L
+  Fr_Day_sim <- rtriangle(1, a = 67500, b = 82500, c = (67500 + 82500)/2)  # m3/day
+  V_sim      <- runif(1, 67500, 82500)      # m3
   
 
   # 2) compute a single dilution factor
@@ -524,7 +524,7 @@ swimming_simulation_results <- map_df(1:1000, function(sim) {
     mutate(
       simulation    = sim,
       EC_river_mL   = pmax(0, rnorm(n(), mean_concentration, sd_concentration)),
-      EC_swim_mL    = (EC_river_mL * 1000 * dil_factor) / 1000,  # CFU/mL
+      EC_swim_mL    = (EC_river_mL * dil_factor),  # CFU/mL
       HC_SwimAdult  = runif(n(), 0, 70.67),
       HC_SwimChild  = runif(n(), 0, 205.33),
       HE_SwimAdult  = EC_swim_mL * HC_SwimAdult,
@@ -725,19 +725,27 @@ p4 <- ggplot(simulation_results, aes(x = day, y = mean_concentration)) +
 
 ##### 5. Swimming Exposure #####
 swim_long <- swimming_exposure_summary %>%
-  pivot_longer(c(mean_HE_SwimAdult, mean_HE_SwimChild),
-               names_to = "group", values_to = "exposure") %>%
-  mutate(group = recode(group,
-                        mean_HE_SwimAdult = "Adult",
-                        mean_HE_SwimChild = "Child"))
-p5 <- ggplot(swim_long, aes(x = day, y = exposure, color = group)) +
+  transmute(
+    day,
+    exposure_adult = mean_HE_SwimAdult,
+    lower_adult    = lower_swim_adult,
+    upper_adult    = upper_swim_adult,
+    exposure_child = mean_HE_SwimChild,
+    lower_child    = lower_swim_child,
+    upper_child    = upper_swim_child
+  ) %>%
+  pivot_longer(
+    cols = -day,
+    names_to = c(".value", "group"),
+    names_pattern = "^(exposure|lower|upper)_(adult|child)$"
+  ) %>%
+  mutate(group = recode(group, adult = "Adult", child = "Child"))
+
+p5 <- ggplot(swim_long, aes(x = day, y = exposure, color = group, fill = group)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, color = NA) +
   geom_line(size = 1) +
-  labs(
-    title = "Swimming Exposure Over Time",
-    x = "Day",
-    y = "CFU per Event",
-    color = "Age Group"
-  ) +
+  labs(x = "Day", y = "CFU per Event", color = "Age Group") +
+  guides(fill = "none") +
   my_theme
 
 
@@ -1367,7 +1375,7 @@ for (p in names(param_defs)) {
     lhs_mat[,p] * (param_defs[[p]]["max"] - param_defs[[p]]["min"])
 }
 
-# 8.4  Parallel model runs with progress bar -------------
+# Parallel model runs with progress bar -------------
 plan(multisession, workers = parallel::detectCores() - 1)
 
 output_metric <- NULL
@@ -1479,27 +1487,53 @@ label_map <- c(
   soil_bulk_density        = "Soil bulk density",
   bacteria_partition_coeff = "Partition coefficient",
   wash_off_fraction        = "Wash-off fraction",
-  flow_rate                   = "Flow rate",
-  bathing_site_volume          = "Bathing site volume",
+  flow_rate                = "Flow rate",
+  bathing_site_volume      = "Bathing site volume",
   HC_Adult_max             = "Max ingestion volume"
 )
 
-prcc_res_swimming$parameter <- factor(
-  prcc_res_swimming$parameter,
-  levels = prcc_res_swimming$parameter[order(prcc_res_swimming$prcc)]
-)
+# symbols in the plot
+symbol_map <- c(
+  farm_density             = expression(rho[farm]),
+  target_weight            = expression(w[tar]),
+  prevalence               = expression(p[init]),
+  K                        = expression(K),
+  beta.mean                = expression(beta),
+  ed_rate                  = expression(phi),
+  ingestion_rate           = expression(rho[ingest]),
+  e_rate                   = expression(epsilon),
+  litter_mass              = expression(L),
+  decay_rate_est           = expression(lambda[s]),
+  manure_application_rate  = expression(M[app]),
+  soil_bulk_density        = expression(rho[soil]),
+  bacteria_partition_coeff = expression(K[d]),
+  wash_off_fraction        = expression(omega),
+  flow_rate                = expression(Q),
+  bathing_site_volume      = expression(V),
+  HC_Adult_max = expression(IR[j[max], i])
+  )
+  
 
-ggplot(prcc_df, aes(x = parameter, y = prcc)) +
+
+## combine text + symbol (same scheme as your other plot)
+nice_labels <- map2(label_map, symbol_map,
+                    ~ bquote(.(.x)~"("~.(.y)~")")) |>
+  unlist()
+
+## order by PRCC and plot
+prcc_df$parameter <- factor(prcc_df$parameter,
+                            levels = prcc_df$parameter[order(prcc_df$prcc)])
+
+# plot sensitivity analysis
+ggplot(prcc_df, aes(parameter, prcc)) +
   geom_col() +
-  geom_errorbar(aes(ymin = min.ci, ymax = max.ci), width = 0.2) +
+  geom_errorbar(aes(ymin = min.ci, ymax = max.ci), width = .2) +
   coord_flip() +
-  scale_x_discrete(labels = label_map) +
-  labs(
-    x = NULL,
-    y = "Partial Rank Correlation\nCoefficient (PRCC)",
-    title = ""
-  ) +
+  scale_x_discrete(labels = nice_labels) +
+  labs(x = NULL,
+       y = "Partial Rank Correlation\nCoefficient (PRCC)") +
   theme_minimal(base_size = 12)
+
 
 
 # Write results
@@ -1514,5 +1548,6 @@ write_xlsx(swimming_risk_summary,      "swimming_risk_summary.xlsx") # recreatio
 write_xlsx(prcc_df_fm,                "prcc_df_fm.xlsx") # sensitivity analysis farm module
 write_xlsx(prcc_res_swimming,                "prcc_res_swimming") # sensitivity analysis swimming module
 write_xlsx(prcc_res_lettuce,                "prcc_res_lettuce")  # sensitivity analysis lettuce module
+
 
 
