@@ -1521,11 +1521,11 @@ nice_labels <- map2(label_map, symbol_map,
   unlist()
 
 ## order by PRCC and plot
-prcc_df$parameter <- factor(prcc_df$parameter,
-                            levels = prcc_df$parameter[order(prcc_df$prcc)])
+prcc_res_swimming$parameter <- factor(prcc_res_swimming$parameter,
+                            levels = prcc_res_swimming$parameter[order(prcc_res_swimming$prcc)])
 
 # plot sensitivity analysis
-ggplot(prcc_df, aes(parameter, prcc)) +
+ggplot(prcc_res_swimming, aes(parameter, prcc)) +
   geom_col() +
   geom_errorbar(aes(ymin = min.ci, ymax = max.ci), width = .2) +
   coord_flip() +
@@ -1548,6 +1548,7 @@ write_xlsx(swimming_risk_summary,      "swimming_risk_summary.xlsx") # recreatio
 write_xlsx(prcc_df_fm,                "prcc_df_fm.xlsx") # sensitivity analysis farm module
 write_xlsx(prcc_res_swimming,                "prcc_res_swimming") # sensitivity analysis swimming module
 write_xlsx(prcc_res_lettuce,                "prcc_res_lettuce")  # sensitivity analysis lettuce module
+
 
 
 
